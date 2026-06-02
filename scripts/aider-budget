@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+"""
+aider-budget — Aider wrapper with budget enforcement.
+
+Usage:
+    aider-budget [aider options...]
+
+Reads .aider.budget.toml from the current directory (or ancestors).
+Tracks token spending per model and enforces configured limits.
+"""
+
+import sys
+import os
+from pathlib import Path
+
+# Ensure budget_enforcer is importable
+script_dir = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(script_dir))
+
+from budget_enforcer import BudgetConfig, BudgetEnforcer, record_spend
+
+
+def find_config() -> Path:
+    """Walk up from cwd to find .aider.budget.toml."""
+    cwd = Path.cwd()
+    for parent in [cwd] + list(cwd.parents):
+        config = parent / ".aider.budget.toml"
+        if config.exists():
+            return config
+    return cwd / ".aider.budget.toml"
+
+
+def main():
+    config_path = find_config()
+    config = BudgetConfig(config_path)
+    enforcer = BudgetEnforcer(config)
+
+    if config.has_limits():
+        print(f"📊 Budget Enforcer active — limits from {config_path.name}")
+        for model_key, limits in config.limits.items():
+            display_name = model_key if model_key != "__default__" else "default"
+            limit_strs = [f"{k}={v}" for k, v in limits.items()]
+            print(f"   [{display_name}] {', '.join(limit_strs)}")
+        print()
+    else:
+        print("📊 Budget Enforcer loaded — no limits configured (create .aider.budget.toml)")
+        print()
+
+    # Pass through to aider
+    import subprocess
+
+    try:
+        env = os.environ.copy()
+        env["AIDER_BUDGET_ENFORCER"] = "1"
+
+        cmd = [sys.executable, "-m", "aider"] + sys.argv[1:]
+        proc = subprocess.Popen(cmd, env=env)
+        proc.wait()
+        sys.exit(proc.returncode)
+    except FileNotFoundError:
+        print("Error: aider not found. Install with: pip install aider-chat")
+        print("Or run directly: python -m aider ...")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        sys.exit(130)
+
+
+if __name__ == "__main__":
+    main()
