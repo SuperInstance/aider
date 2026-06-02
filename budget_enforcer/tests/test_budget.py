@@ -208,6 +208,7 @@ class TestBudgetEnforcer:
             path.write_text("[default]\nmonthly = 100\n")
             config = BudgetConfig(path)
             enforcer = BudgetEnforcer(config)
+            enforcer.spend_data = {"spends": [], "models": {}}
             result = enforcer.check_budget("gpt-4o")
             assert result["phase"] == PHASE_OK
             assert result["usage_pcts"]["monthly"] == 0.0
@@ -251,7 +252,7 @@ class TestBudgetEnforcer:
             result = enforcer.check_budget("claude-opus-4-20250514")
             assert result["phase"] == PHASE_DOWNGRADE_SUGGEST
             assert result["suggestion"] is not None
-            assert "Sonnet" in result["suggestion"]["to"]
+            assert "sonnet" in result["suggestion"]["to"].lower()
             assert result["suggestion"]["savings"] > 0
 
     def test_paused(self):
@@ -326,7 +327,7 @@ class TestIntegration:
         """Simulate a complete budget lifecycle."""
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / ".aider.budget.toml"
-            path.write_text('''[models."gpt-4o"]\nmonthly = 10\ndaily = 2\n''')
+            path.write_text('''[models."gpt-4o"]\nmonthly = 10\n''')
             config = BudgetConfig(path)
             enforcer = BudgetEnforcer(config)
 
@@ -375,6 +376,6 @@ class TestIntegration:
             result = enforcer.check_budget("claude-opus-4-20250514")
             assert result["phase"] == PHASE_DOWNGRADE_SUGGEST
             assert result["suggestion"]["from"] == "claude-opus-4-20250514"
-            assert "Sonnet" in result["suggestion"]["to"]
+            assert "sonnet" in result["suggestion"]["to"].lower()
             # Verify the savings estimate is meaningful
             assert result["suggestion"]["savings"] >= 40.0

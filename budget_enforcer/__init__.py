@@ -165,8 +165,10 @@ class BudgetConfig:
             if "=" in line and current_model:
                 key, val = line.split("=", 1)
                 key = key.strip()
+                # Strip inline comments
+                val = val.split("#")[0].strip()
                 try:
-                    val = float(val.strip().strip('"').strip("'"))
+                    val = float(val.strip('"').strip("'"))
                 except ValueError:
                     continue
 
