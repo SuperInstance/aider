@@ -1,115 +1,114 @@
-# 🏆 SuperInstance Enhancement: Budget Enforcer
+# 💰 Budget Enforcer — Token Spending Limits for Aider
 
-> Aider with token spending limits. Same Aider. **Affordable Aider.**
+A [SuperInstance](https://github.com/SuperInstance) enhancement to [Aider](https://github.com/Aider-AI/aider) (45K+ stars). Same Aider. With spending limits.
 
-_This is a SuperInstance fork of [Aider-AI/aider](https://github.com/Aider-AI/aider) (45K+ stars) — Aider with budget enforcement built in._
+---
 
-The Budget Enforcer wraps Aider's token tracking with configurable budget limits per model. Set daily, weekly, or monthly caps and get proactive warnings before you blow your API budget.
+## The Scenario
 
-## Features
+You're pair-programming with Claude Opus via Aider. Three hours deep in a refactor. You check your API dashboard: **$89 spent today.** The refactor isn't done.
 
-- **📊 Real-time budget tracking** — Know exactly what each model costs per session
-- **🔔 Phase detection** — 60% warning, 85% smart downgrade suggestion, 100% hard pause
-- **🔄 Auto-downgrade suggestions** — "You're at 85% of $200/month. Switch from Claude Opus to Sonnet to save $47."
-- **📝 Historical spend log** — JSON-based with per-model, per-period aggregation
-- **🎯 Configurable limits** — Per-model daily/weekly/monthly caps via `.aider.budget.toml`
+You could power through and let the meter run. Or you could let the Budget Enforcer catch you before that happens.
 
-## Quick Start
-
-```bash
-# Install the budget enforcer
-pip install -e /path/to/budget_enforcer
-
-# Run aider with budget enforcement
-./scripts/aider-budget
-```
-
-## Configuration
+## Setup
 
 Create `.aider.budget.toml` in your project root:
 
 ```toml
 [default]
-monthly = 50        # $50/month for all models combined
+monthly = 50  # $50/month default for any model
 
 [models."claude-sonnet-4-20250514"]
-monthly = 30        # $30/month cap for Claude Sonnet
-daily = 5           # $5/day cap
+monthly = 30
+daily = 5
 
 [models."gpt-4o"]
 monthly = 20
 weekly = 10
 ```
+
+Run with:
+
+```bash
+pip install -e /path/to/budget_enforcer
+./scripts/aider-budget
+```
+
+You'll see:
+
+```
+📊 Budget Enforcer active — limits from .aider.budget.toml
+   [default] monthly=50
+   [claude-sonnet-4-20250514] monthly=30, daily=5
+   [gpt-4o] monthly=20, weekly=10
+```
+
+## What Happens Next
+
+### Phase 1 — Under 60%
+
+Nothing. Aider works as usual. The enforcer tracks spend in `~/.aider/budget-spend.json` but stays quiet.
+
+### Phase 2 — 60-85%
+
+```
+⚡ Budget notice: claude-opus-4-20250514 at 68% of $200/month. $64.00 remaining.
+```
+
+### Phase 3 — 85% → The Downgrade Chain
+
+```
+⚠️ Budget warning: claude-opus-4-20250514 at 85% of $200/month.
+   Switch from claude-opus-4-20250514 to claude-sonnet-4-20250514
+   to save $23.00 (switch from Opus to Sonnet, ~67% lower cost).
+```
+
+One `Ctrl+C`, then restart aider with `--model claude-sonnet-4-20250514`. The enforcer keeps tracking.
+
+### Phase 4 — Hard Pause
+
+```
+⛔ Budget paused: claude-opus-4-20250514 has exceeded its limit.
+   Try a cheaper model or wait for the next period.
+```
+
+## The Result
+
+You finished the refactor at **$31** instead of $89. The last 40% of edits used Sonnet — you couldn't tell the difference.
 
 ## How It Works
 
-1. The wrapper intercepts API calls and tracks token usage per model
-2. It uses litellm's pricing data to calculate real-time costs
-3. Before each API call, it checks the current phase against configured limits
-4. At 60%: console warning with remaining budget
-5. At 85%: suggests a cheaper model alternative with savings calculation
-6. At 100%: pauses execution until the next period
+Three things under the hood:
+
+1. **Per-model spend tracking** — Each API call records input/output tokens, cost, and model to a JSON history
+2. **Periodic budget check** — Every call checks daily/weekly/monthly spend against configured limits
+3. **Phase-based response** — `ok` (≤60%) → `warning` (60-85%) → `suggest` (85-100%) → `paused` (≥100%)
+
+The downgrade suggestions are hardcoded to known model pricing tiers:
+
+| If you're on... | Suggests... | Savings |
+|---|---|---|
+| `claude-opus-4-20250514` | `claude-sonnet-4-20250514` | ~67% |
+| `gpt-4o` | `gpt-4o-mini` | ~90% |
+| `o1` | `gpt-4o` | ~85% |
+
+## Config Reference
+
+`.aider.budget.toml` supports three sections:
+
+- `[default]` — fallback limits for any model not explicitly listed
+- `[models."model-name"]` — per-model limits that override defaults
+
+Each section accepts `daily`, `weekly`, and `monthly` as dollar values.
+
+## The Tests
+
+```bash
+pytest budget_enforcer/tests/test_budget.py -v
+```
+
+26 tests covering phase threshold boundaries, TOML parsing with inline comments, spend history persistence, downgrade suggestions per model, and end-to-end lifecycle scenarios.
 
 ## License
 
-Same as Aider — Apache 2.0
-
----
-
-🏆 **SuperInstance Enhancement: Budget Enforcer — Aider with token spending limits. Same Aider. Affordable Aider.**
-<<<<<<< HEAD
-=======
-
-
----
-
-## 🏆 SuperInstance Enhancement: Budget Enforcer
-
-> Aider with token spending limits. Same Aider. **Affordable Aider.**
-
-The Budget Enforcer wraps Aider's token tracking with configurable budget limits per model. Set daily, weekly, or monthly caps and get proactive warnings before you blow your API budget.
-
-### Features
-
-- **📊 Real-time budget tracking** — Know exactly what each model costs per session
-- **🔔 Phase detection** — 60% warning, 85% smart downgrade suggestion, 100% hard pause
-- **🔄 Auto-downgrade suggestions** — "You're at 85% of $200/month. Switch from Claude Opus to Sonnet to save $47."
-- **📝 Historical spend log** — JSON-based with per-model, per-period aggregation
-- **🎯 Configurable limits** — Per-model daily/weekly/monthly caps via `.aider.budget.toml`
-
-### Quick Start
-
-```bash
-# Install the budget enforcer
-pip install -e /path/to/budget_enforcer
-
-# Run aider with budget enforcement
-./scripts/aider-budget
-```
-
-### Configuration
-
-Create `.aider.budget.toml` in your project root:
-
-```toml
-[default]
-monthly = 50        # $50/month for all models combined
-
-[models."claude-sonnet-4-20250514"]
-monthly = 30        # $30/month cap for Claude Sonnet
-daily = 5           # $5/day cap
-
-[models."gpt-4o"]
-monthly = 20
-weekly = 10
-```
-
-### How It Works
-
-1. The wrapper intercepts API calls and tracks token usage per model
-2. It uses litellm's pricing data to calculate real-time costs
-3. Before each API call, it checks the current phase against configured limits
-4. At 60%: console warning with remaining budget
-5. At 85%: suggests a cheaper model alternative with savings calculation
-6. At 100%: pauses execution until the next period
->>>>>>> budget-enforcer
+Apache 2.0 (same as Aider)
