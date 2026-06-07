@@ -27,7 +27,7 @@ RETRY_TIMEOUT = 60
 
 request_timeout = 600
 
-DEFAULT_MODEL_NAME = "gpt-4o"
+DEFAULT_MODEL_NAME = "openai/zai/glm-5.1"
 ANTHROPIC_BETA_HEADER = "prompt-caching-2024-07-31,pdfs-2024-09-25"
 
 OPENAI_MODELS = """
@@ -97,6 +97,12 @@ ANTHROPIC_MODELS = [ln.strip() for ln in ANTHROPIC_MODELS.splitlines() if ln.str
 
 # Mapping of model aliases to their canonical names
 MODEL_ALIASES = {
+    # SuperInstance providers (primary)
+    "glm": "openai/zai/glm-5.1",
+    "glm-5.1": "openai/zai/glm-5.1",
+    "zai": "openai/zai/glm-5.1",
+    "deepinfra": "openai/Qwen/Qwen2.5-72B-Instruct",
+    "deepinfra-glm": "openai/zai/glm-5.1",
     # Claude models
     "sonnet": "claude-sonnet-4-6",
     "haiku": "claude-haiku-4-5",

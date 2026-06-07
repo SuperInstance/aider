@@ -1,6 +1,37 @@
-# 💰 Budget Enforcer — Token Spending Limits for Aider
+# 🔮 SuperInstance Aider — AI Pair Programming with z.ai & DeepInfra
 
-A [SuperInstance](https://github.com/SuperInstance) enhancement to [Aider](https://github.com/Aider-AI/aider) (45K+ stars). Same Aider. With spending limits.
+A [SuperInstance](https://github.com/SuperInstance) fork of [Aider](https://github.com/Aider-AI/aider) (45K+ stars) — now with **z.ai GLM-5.1** as the default model, **DeepInfra** fallback, and **Budget Enforcer** for token spending limits.
+
+> **Key changes from upstream:**
+> - Default model is now **z.ai GLM-5.1** (not OpenAI GPT-4o)
+> - Automatic provider configuration via `ZAI_API_KEY` / `DEEPINFRA_API_KEY` env vars
+> - Budget Enforcer tracks spending across all providers
+> - See [`SUPERINSTANCE_CHANGES.md`](./SUPERINSTANCE_CHANGES.md) for full details
+
+---
+
+## Quick Start
+
+```bash
+# Set your z.ai API key
+export ZAI_API_KEY="your-zai-api-key"
+
+# Run aider — automatically uses z.ai GLM-5.1
+pip install -e .
+aider
+```
+
+Or use DeepInfra as fallback:
+```bash
+export DEEPINFRA_API_KEY="your-deepinfra-key"
+aider --model deepinfra   # Uses Qwen 2.5 72B on DeepInfra
+```
+
+---
+
+## 💰 Budget Enforcer
+
+The Budget Enforcer is a [SuperInstance](https://github.com/SuperInstance) enhancement. Same Aider. With spending limits.
 
 ---
 
